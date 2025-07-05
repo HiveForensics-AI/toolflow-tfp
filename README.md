@@ -196,6 +196,43 @@ curl -X POST http://localhost:3000/tfp/invoke \
 
 ---
 
+## 4. `rag.addDoc` (Add a document to your RAG vector store)
+
+You can add documents to your semantic search knowledge base using a single HTTP call:
+
+```bash
+curl -X POST http://localhost:3000/tfp/invoke \
+  -H "Content-Type: application/json" \
+  -d '{
+    "toolId": "rag.addDoc",
+    "input": {
+      "text": "ToolFlow Protocol (TFP) is a framework for tool-based AI agents.",
+      "provider": "openai"
+    }
+  }'
+```
+
+* `provider` can be `"openai"` (default) or `"ollama"` (if running locally with Ollama).
+* The text will be embedded and stored in `vectorStore.json`, ready for RAG search.
+
+**Response:**
+
+```json
+{
+  "requestId": "...",
+  "toolId": "rag.addDoc",
+  "output": { "id": "some-uuid", "status": "added" },
+  "metadata": { ... }
+}
+```
+
+> **Tip:**
+> After adding a document, you can immediately retrieve it using `rag.search` with a relevant query!
+
+---
+
+
+
 ## ➕ Adding Your Own Tool
 
 1. **Create** `src/tools/myTool.ts`:

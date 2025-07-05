@@ -6,6 +6,8 @@ import { ToolDescriptor, CallToolRequestSchema, CallToolSuccessSchema, CallToolE
 import { descriptor as echoDescriptor, handler as echoHandler } from './tools/echo';
 import { descriptor as chatDesc, handler as chatHandler } from './tools/llmChat';
 import { descriptor as ragDesc, handler as ragHandler } from './tools/ragSearch';
+import { descriptor as addDocDesc, handler as addDocHandler } from './tools/ragAddDoc';
+
 
 const app = express();
 app.use(express.json());
@@ -24,7 +26,9 @@ function registerTool(desc: ToolDescriptor, handler: (input: any) => Promise<any
 
 registerTool(echoDescriptor, echoHandler);
 registerTool(chatDesc, chatHandler);   
-registerTool(ragDesc, ragHandler);     
+registerTool(ragDesc, ragHandler);
+registerTool(addDocDesc, addDocHandler);
+
 
 /* ---------------- Endpoints ----------------- */
 

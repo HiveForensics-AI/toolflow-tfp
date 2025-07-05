@@ -1,0 +1,24 @@
+
+{
+  "name": "@hive-forensics/toolflow",
+  "version": "0.1.0",
+  "description": "ToolFlow Protocol (TFP) reference implementation by Hive Forensics AI",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "dev": "nodemon --exec ts-node src/index.ts",
+    "build": "tsc -p .",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "express": "^4.19.0",
+    "zod": "^3.22.4",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "ts-node": "^10.9.2",
+    "nodemon": "^3.0.3"
+  },
+  "license": "Apache-2.0"
+}

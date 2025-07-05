@@ -7,6 +7,10 @@ A minimalist JSON-first protocol and reference server for building context-aware
 
 ---
 
+## Architecture Diagram
+
+![ToolFlow Protocol Architecture](toolflow.png)
+
 ## 🚀 Features
 
 * **Simple JSON protocol**: `/tfp/tools` for discovery, `/tfp/invoke` for calls

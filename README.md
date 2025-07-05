@@ -1,5 +1,5 @@
 
-# ToolFlow Protocol (TFP) — Node.js/TypeScript Boilerplate
+# ToolFlow Protocol (TFP) — Node.js/TypeScript
 
 **By Hive Forensics AI**
 
@@ -21,8 +21,8 @@ A minimalist JSON-first protocol and reference server for building context-aware
 
 ```bash
 # 1️⃣ Clone or unzip
-git clone https://github.com/HiveForensics-AI/toolflow‐tfp.git
-cd toolflow‐tfp
+git clone https://github.com/HiveForensics-AI/toolflow-tfp.git
+cd toolflow-tfp
 
 # 2️⃣ Install deps
 npm install

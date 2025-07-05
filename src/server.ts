@@ -1,5 +1,5 @@
 
-import express from 'express';
+import express, { Request, Response } from 'express';
 import { v4 as uuid } from 'uuid';
 import { z } from 'zod';
 import { ToolDescriptor, CallToolRequestSchema, CallToolSuccessSchema, CallToolErrorSchema } from './protocol/types';
@@ -25,12 +25,13 @@ registerTool(echoDescriptor, echoHandler);
 /* ---------------- Endpoints ----------------- */
 
 // List tools
-app.get('/tfp/tools', (_req, res) => {
+app.get('/tfp/tools', (_req: Request, res: Response) => {
+
   res.json(Object.values(registry).map(r => r.descriptor));
 });
 
 // Invoke tool
-app.post('/tfp/invoke', async (req, res) => {
+app.post('/tfp/invoke', async (req: Request, res: Response) => {
   try {
     const parsedReq = CallToolRequestSchema.parse({
       ...req.body,

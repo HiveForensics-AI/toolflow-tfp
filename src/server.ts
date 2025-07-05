@@ -4,6 +4,8 @@ import { v4 as uuid } from 'uuid';
 import { z } from 'zod';
 import { ToolDescriptor, CallToolRequestSchema, CallToolSuccessSchema, CallToolErrorSchema } from './protocol/types';
 import { descriptor as echoDescriptor, handler as echoHandler } from './tools/echo';
+import { descriptor as chatDesc, handler as chatHandler } from './tools/llmChat';
+import { descriptor as ragDesc, handler as ragHandler } from './tools/ragSearch';
 
 const app = express();
 app.use(express.json());
@@ -21,6 +23,8 @@ function registerTool(desc: ToolDescriptor, handler: (input: any) => Promise<any
 }
 
 registerTool(echoDescriptor, echoHandler);
+registerTool(chatDesc, chatHandler);   
+registerTool(ragDesc, ragHandler);     
 
 /* ---------------- Endpoints ----------------- */
 

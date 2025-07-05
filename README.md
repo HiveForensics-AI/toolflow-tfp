@@ -1,4 +1,3 @@
-
 # ToolFlow Protocol (TFP) — Node.js/TypeScript
 
 **By Hive Forensics AI**
@@ -11,12 +10,15 @@ A minimalist JSON-first protocol and reference server for building context-aware
 
 ![ToolFlow Protocol Architecture](toolflow.png)
 
+---
+
 ## 🚀 Features
 
 * **Simple JSON protocol**: `/tfp/tools` for discovery, `/tfp/invoke` for calls
 * **Type-safe**: Zod runtime validation + full TypeScript types
+* **LLM and RAG Ready**: Out-of-the-box OpenAI, Ollama, and vector-store RAG pipelines
 * **Extensible**: drop-in `registerTool()` for new handlers
-* **Lightweight**: \~150 lines of code, zero ceremony
+* **Environment-configurable**: `.env` support for easy deployment
 * **CLI-friendly**: test instantly with `curl` or your favorite HTTP client
 
 ---
@@ -28,18 +30,20 @@ A minimalist JSON-first protocol and reference server for building context-aware
 git clone https://github.com/HiveForensics-AI/toolflow-tfp.git
 cd toolflow-tfp
 
-# 2️⃣ Install deps
+# 2️⃣ Install dependencies
 npm install
 
-# 3️⃣ Launch in dev mode (hot reload)
+# 3️⃣ Copy and edit environment variables
+cp .env.example .env
+# Edit .env and set your OpenAI key or point to an Ollama server
+
+# 4️⃣ Launch in dev mode (hot reload)
 npm run dev
 # → http://localhost:3000
 
-# 4️⃣ Try it!
-# List tools:
+# 5️⃣ Try it!
 curl http://localhost:3000/tfp/tools
 
-# Invoke the “echo” example:
 curl -X POST http://localhost:3000/tfp/invoke \
      -H "Content-Type: application/json"      \
      -d '{
@@ -52,7 +56,7 @@ You should see:
 
 ```json
 {
-  "requestId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+  "requestId": "...",
   "toolId": "echo.v1",
   "output": { "echoed": "Hello, Hive!" },
   "metadata": {
@@ -69,17 +73,126 @@ You should see:
 
 ```
 .
-├── package.json          # scripts & dependencies
-├── tsconfig.json         # strict TS setup
-├── README.md             # ← this file
+├── .env.example           # Environment variable template
+├── package.json           # scripts & dependencies
+├── tsconfig.json          # strict TS setup
+├── README.md              # ← this file
 └── src/
     ├── protocol/
-    │   └── types.ts      # Core Zod schemas & TS types
+    │   └── types.ts       # Core Zod schemas & TS types
     ├── tools/
-    │   └── echo.ts       # Example “echo.v1” descriptor + handler
-    ├── server.ts         # Express app with /tfp endpoints
-    └── index.ts          # Bootstraps server on port 3000
+    │   ├── echo.ts        # Example “echo.v1” tool
+    │   ├── llmChat.ts     # LLM chat via OpenAI or Ollama
+    │   └── ragSearch.ts   # RAG tool over vector store
+    ├── llm/
+    │   ├── openaiAdapter.ts
+    │   └── ollamaAdapter.ts
+    ├── rag/
+    │   └── vectorStore.ts
+    ├── server.ts          # Express app with /tfp endpoints
+    └── index.ts           # Bootstraps server on port 3000
 ```
+
+---
+
+## 🌱 Environment Setup
+
+1. **Copy the example and fill in your keys:**
+
+   ```bash
+   cp .env.example .env
+   # Edit .env for your OpenAI API key, Ollama base URL, etc.
+   ```
+
+2. **Environment Variables Overview:**
+
+   ```
+   # ---------- OpenAI ----------
+   OPENAI_API_KEY=sk-...
+   OPENAI_MODEL=gpt-4o-mini
+   OPENAI_EMBED_MODEL=text-embedding-3-small
+
+   # ---------- Ollama ----------
+   OLLAMA_BASE_URL=http://localhost:11434
+   OLLAMA_MODEL=llama3
+   OLLAMA_EMBED_MODEL=llama3
+
+   # ---------- Vector Store ----------
+   VECTOR_STORE_PATH=vectorStore.json
+
+   # ---------- Server ----------
+   PORT=3000
+   ```
+
+---
+
+## 🤖 Built-in Tools & How to Use
+
+### 1. `echo.v1` (basic example)
+
+```bash
+curl -X POST http://localhost:3000/tfp/invoke \
+     -H "Content-Type: application/json"      \
+     -d '{"toolId":"echo.v1","input":{"text":"Hello world"}}'
+```
+
+### 2. `llm.chat` (OpenAI or Ollama completion)
+
+```bash
+curl -X POST http://localhost:3000/tfp/invoke \
+     -H "Content-Type: application/json"      \
+     -d '{"toolId":"llm.chat","input":{"prompt":"Say hi!","provider":"openai"}}'
+```
+
+or (for Ollama, if running locally):
+
+```bash
+curl -X POST http://localhost:3000/tfp/invoke \
+     -H "Content-Type: application/json"      \
+     -d '{"toolId":"llm.chat","input":{"prompt":"Say hi!","provider":"ollama"}}'
+```
+
+**Response:**
+
+```json
+{
+  "requestId": "...",
+  "toolId": "llm.chat",
+  "output": { "completion": "Hi there!" },
+  "metadata": { ... }
+}
+```
+
+### 3. `rag.search` (RAG retrieval & LLM answer)
+
+Retrieve relevant docs from your local vector store and get an LLM answer:
+
+```bash
+curl -X POST http://localhost:3000/tfp/invoke \
+     -H "Content-Type: application/json"      \
+     -d '{"toolId":"rag.search","input":{"query":"What is TFP?","provider":"openai","topK":3}}'
+```
+
+**Response:**
+
+```json
+{
+  "requestId": "...",
+  "toolId": "rag.search",
+  "output": {
+    "answer": "TFP stands for ToolFlow Protocol, a minimal JSON-first API system ...",
+    "docs": [
+      { "id": "...", "text": "ToolFlow Protocol (TFP) is ..." },
+      ...
+    ]
+  },
+  "metadata": { ... }
+}
+```
+
+> **Note:**
+> The RAG tool uses a simple in-memory JSON vector store.
+> Add documents using code via the `addDoc()` function in `src/rag/vectorStore.ts`.
 
 ---
 
@@ -91,7 +204,6 @@ You should see:
    import { z } from 'zod';
    import { ToolDescriptor } from '../protocol/types';
 
-   // 1. Define input/output schemas:
    export const inputSchema = z.object({
      foo: z.string(),
      bar: z.number().optional()
@@ -100,7 +212,6 @@ You should see:
      result: z.string()
    });
 
-   // 2. Export descriptor:
    export const descriptor: ToolDescriptor = {
      toolId: 'myTool.v1',
      name: 'My Tool',
@@ -111,9 +222,7 @@ You should see:
      tags: ['example','demo']
    };
 
-   // 3. Export handler:
    export async function handler(input: z.infer<typeof inputSchema>) {
-     // your logic…
      return { result: `You sent foo=${input.foo}` };
    }
    ```
@@ -126,56 +235,35 @@ You should see:
    registerTool(myDesc, myHandler);
    ```
 
-3. **Restart** your server—now `/tfp/tools` lists `myTool.v1` and you can:
-
-   ```bash
-   curl -X POST http://localhost:3000/tfp/invoke \
-        -H "Content-Type: application/json"      \
-        -d '{
-              "toolId": "myTool.v1",
-              "input": { "foo": "bar" }
-            }'
-   ```
+3. **Restart** your server—now `/tfp/tools` lists `myTool.v1` and you can invoke it!
 
 ---
 
 ## 🔍 Error Handling
 
-If you invoke an unknown tool or send invalid input, you’ll get a structured error:
+You’ll get structured JSON errors for unknown tools or invalid input.
 
-```bash
-curl -X POST http://localhost:3000/tfp/invoke \
-     -H "Content-Type: application/json"      \
-     -d '{ "toolId": "nope.v1", "input": {} }'
-```
+**Unknown tool:**
 
 ```json
 {
-  "requestId": "…",
+  "requestId": "...",
   "toolId": "nope.v1",
-  "metadata": {
-    "timestamp": "2025-07-05T14:30:00Z",
-    "status": "error"
-  },
-  "error": {
-    "code": "ToolNotFound",
-    "message": "Unknown tool",
-    "details": null
-  }
+  "metadata": { "timestamp": "...", "status": "error" },
+  "error": { "code": "ToolNotFound", "message": "Unknown tool" }
 }
 ```
 
-Or, for validation errors:
+**Validation error:**
 
 ```json
 {
-  "requestId": "…",
+  "requestId": "...",
   "toolId": "echo.v1",
-  "metadata": { "timestamp": "…", "status": "error" },
+  "metadata": { "timestamp": "...", "status": "error" },
   "error": {
     "code": "ZodError",
-    "message": "Expected string, received number at path: text",
-    "details": { /* Zod validation issues */ }
+    "message": "Expected string, received number at path: text"
   }
 }
 ```
@@ -184,22 +272,19 @@ Or, for validation errors:
 
 ## 🧪 Testing with `curl` & Postman
 
-* **List tools**:
+* **List tools:**
   `GET http://localhost:3000/tfp/tools`
-
-* **Invoke tool**:
+* **Invoke tool:**
   `POST http://localhost:3000/tfp/invoke`
   Header: `Content-Type: application/json`
   Body example:
 
   ```json
   {
-    "toolId": "echo.v1",
-    "input": { "text": "Test" }
+    "toolId": "llm.chat",
+    "input": { "prompt": "Hello!" }
   }
   ```
-
-You can import these into Postman or Insomnia as saved requests.
 
 ---
 
@@ -212,7 +297,7 @@ npm run build
 # Start compiled server
 npm start
 
-# Or containerize:
+# Or run in Docker:
 docker build -t hive-tfp:latest .
 docker run -p 3000:3000 hive-tfp:latest
 ```
@@ -221,11 +306,12 @@ docker run -p 3000:3000 hive-tfp:latest
 
 ## 📚 Next Steps & Customization
 
-* Swap **Zod** for **io-ts** or **Yup** if you prefer.
-* Add **authentication** middleware (API-key, JWT).
-* Plug in **WebSocket** or **gRPC** transports.
-* Integrate **metrics** (Prometheus, OpenTelemetry).
-* Build a **client SDK** generator from `/tfp/tools` JSON manifest.
+* Add custom LLM or RAG adapters (just create a tool!)
+* Build a front-end that lists/discovers all registered tools
+* Integrate authentication (API key, JWT)
+* Add observability (Prometheus, OpenTelemetry)
+* Plug in additional vector stores (Pinecone, Qdrant, etc.)
+* Generate a client SDK from `/tfp/tools` manifest
 
 ---
 
@@ -236,3 +322,4 @@ Apache 2.0 — see [LICENSE](LICENSE)
 ---
 
 Happy building! 🚀
+

@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "ToolFlow Protocol (TFP) reference implementation by Hive Forensics AI",
   "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "types": "dist/types/index.d.ts",
   "scripts": {
     "dev": "nodemon --exec ts-node src/index.ts",
     "build": "tsc -p .",
